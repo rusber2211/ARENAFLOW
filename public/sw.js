@@ -1,7 +1,6 @@
-const CACHE_NAME = 'vila-da-barra-v2';
+const CACHE_NAME = 'vila-da-barra-v3';
 
 const ARQUIVOS_CACHE = [
-  '/',
   '/index.html',
   '/style.css',
   '/script.js',
@@ -18,7 +17,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// ATIVAÇÃO (limpa cache antigo e assume controle)
+// ATIVAÇÃO
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((chaves) => {
@@ -31,20 +30,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// FETCH (offline inteligente)
+// FETCH (CORRIGIDO)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(event.request).catch(() => {
-        // fallback básico para não “travar” app
-        if (event.request.destination === 'document') {
-          return caches.match('/');
-        }
-      });
-    })
+    fetch(event.request)
+      .then((response) => response)
+      .catch(() => {
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match('/index.html');
+        });
+      })
   );
 });
